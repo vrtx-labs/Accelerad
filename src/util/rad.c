@@ -1231,6 +1231,9 @@ specview(				/* get proper view spec from vs */
 	case VT_HEM:
 	case VT_PLS:
 	case VT_CYL:
+#ifdef VT_ODS
+	case VT_ODS:
+#endif
 		viewtype = *vs++;
 		break;
 	default:
@@ -1294,6 +1297,11 @@ specview(				/* get proper view spec from vs */
 		case VT_CYL:
 			cp = addarg(cp, "-vh 180 -vv 90");
 			break;
+#ifdef VT_ODS
+		case VT_ODS:
+			cp = addarg(cp, "-vh 360 -vv 180");
+			break;
+#endif
 		}
 	} else {
 		while (!isspace(*vs))		/* else skip id */

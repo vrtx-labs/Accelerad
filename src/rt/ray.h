@@ -11,6 +11,12 @@
 #include  "color.h"
 #include  "pmapparm.h"
 
+#include  "accelerad.h"
+
+#ifdef DAYSIM
+#include  "daysim.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -71,6 +77,9 @@ typedef struct ray {
 	short	rlvl;		/* number of reflections for this ray */
 	short	rtype;		/* ray type */
 	short	crtype;		/* cumulative ray type */
+#ifdef DAYSIM
+	DaysimCoef daylightCoef; /* daylight coefficients */
+#endif
 }  RAY;
 
 #define  rayvalue(r)	(*(r)->revf)(r)
@@ -81,6 +90,9 @@ typedef struct ray {
 #define  rayreorient(r)	if ((r)->rflips & 1) flipsurface(r); else
 
 extern char  VersionID[];	/* Radiance version ID string */
+#ifdef ACCELERAD_RT
+extern char  VersionShortID[];	/* Major.Minor version ID string */
+#endif
 
 extern CUBE	thescene;	/* our scene */
 extern OBJECT	nsceneobjs;	/* number of objects in our scene */
@@ -102,6 +114,34 @@ extern int	ray_savesiz;	/* size of parameter save buffer */
 extern int	do_irrad;	/* compute irradiance? */
 
 extern int	rand_samp;	/* pure Monte Carlo sampling? */
+
+#ifdef ACCELERAD
+extern unsigned int use_optix;			/* Flag to use OptiX for ray tracing */
+#ifdef RTX
+extern int optix_verbosity;				/* Verbosity level for OptiX callbacks */
+#else
+extern int optix_stack_size;			/* Stack size for OptiX program in bytes */
+#endif
+
+/* For OptiX ambient sampling */
+extern int optix_amb_scale;				/* Scale to use for ambient sample spacing */
+extern int optix_amb_fill;				/* Number of ambient divisions for final-pass fill */
+extern int optix_amb_grid_size;			/* Size of sphere grid to use for ambient seeding */
+extern int optix_amb_seeds_per_thread;	/* Number of ambient seeds per OptiX thread */
+
+/* For OptiX k-means ambient sampling */
+extern int cuda_kmeans_clusters;		/* Number of clusters of ambient for k-means */
+extern int cuda_kmeans_iterations;		/* Maximum number of k-means iterations */
+extern double cuda_kmeans_threshold;	/* Fraction of seeds that must change cluster to continue k-means iteration */
+extern double cuda_kmeans_error;		/* Weighting of position in k-means error */
+
+#ifdef REMOTE_VCA
+/* For OptiX remote VCA access */
+extern int optix_remote_nodes;			/* Number of VCA nodes to request */
+extern int optix_remote_config;			/* Index of VCA configuration */
+extern char *optix_remote_url, *optix_remote_user, *optix_remote_password;	/* VCA device parameters */
+#endif
+#endif
 
 extern double	dstrsrc;	/* square source distribution */
 extern double	shadthresh;	/* shadow threshold */

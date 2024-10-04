@@ -52,6 +52,10 @@ int  castonly = 0;			/* only doing ray-casting? */
 #endif
 OBJECT	traset[MAXTSET+1]={0};		/* trace include/exclude set */
 
+#ifdef DAYSIM
+static void daysimOutput(RAY* r);
+#endif
+
 static RAY  thisray;			/* for our convenience */
 
 static FILE  *inpfp = NULL;		/* input stream pointer */
@@ -84,6 +88,13 @@ static void ourtrace(RAY *r);
 
 static oputf_t *ray_out[32], *every_out[32];
 static putf_t *putreal;
+
+#ifdef ACCELERAD
+#define EXPECTED_RAY_COUNT	32
+
+/* from optix_rtrace.c */
+extern void computeOptix(const size_t width, const size_t height, const unsigned int imm_irrad, RAY* rays);
+#endif
 
 
 void
@@ -130,7 +141,14 @@ rtrace(				/* trace rays from file */
 	int  something2flush = 0;
 	FILE  *fp;
 	double	d;
+#ifdef DAYSIM
+	int j = 0;
+#endif
 	FVECT  orig, direc;
+#ifdef ACCELERAD
+	size_t current_ray, total_rays;
+	RAY* ray_cache;
+#endif
 					/* set up input */
 	if (fname == NULL)
 		inpfp = stdin;
@@ -162,6 +180,16 @@ rtrace(				/* trace rays from file */
 	default:
 		error(CONSISTENCY, "botched output format");
 	}
+#ifdef ACCELERAD
+	if (use_optix) {
+		/* Populate the set of rays to trace */
+		total_rays = vcount ? vcount : EXPECTED_RAY_COUNT;
+		ray_cache = (RAY *)malloc(sizeof(RAY) * total_rays);
+		if (ray_cache == NULL)
+			error(SYSTEM, "out of memory in rtrace");
+		current_ray = 0u;
+	} else /* OptiX kernel can only be launched from a single thread. */
+#endif
 	if (nproc > 1) {		/* start multiprocessing */
 		ray_popen(nproc);
 		ray_fifo_out = printvals;
@@ -175,6 +203,11 @@ rtrace(				/* trace rays from file */
 					/* process input rays */
 	while ((d = nextray(orig, direc)) >= 0.0) {
 		if (d == 0.0) {				/* flush request? */
+#ifdef ACCELERAD
+			if (use_optix)
+				bogusray();
+			else
+#endif
 			if (something2flush) {
 				if (ray_pnprocs > 1 && ray_fifo_flush() < 0)
 					error(USER, "child(ren) died");
@@ -185,7 +218,28 @@ rtrace(				/* trace rays from file */
 			} else
 				bogusray();
 		} else {				/* compute and print */
+#ifdef DAYSIM
+			if (NumberOfSensorsInDaysimFile > 0) {  /* sensor units are specified using option '-U' */
+				if (j < NumberOfSensorsInDaysimFile) {
+					if (DaysimSensorUnits[j] == 1)
+						imm_irrad = 1;
+					else
+						imm_irrad = 0;
+
+					rtcompute(orig, direc, lim_dist ? d : 0.0);
+					j++;
+				} else { /* not enough sensors specified under '-U' */
+					error(WARNING, "Not enough sensor units given under \'-U\'");
+				}
+			} else {
+				rtcompute(orig, direc, lim_dist ? d : 0.0);
+			}
+#else
 			rtcompute(orig, direc, lim_dist ? d : 0.0);
+#endif
+#ifdef ACCELERAD
+			if (!use_optix)
+#endif
 			if (!--nextflush) {		/* flush if time */
 				if (ray_pnprocs > 1 && ray_fifo_flush() < 0)
 					error(USER, "child(ren) died");
@@ -194,11 +248,37 @@ rtrace(				/* trace rays from file */
 			} else
 				something2flush = 1;
 		}
+#ifdef ACCELERAD
+		if (use_optix) {
+			/* resize array if necessary (should only happen when vcount == 0) */
+			if (current_ray == total_rays) {
+				total_rays *= 2;
+				ray_cache = (RAY *)realloc(ray_cache, sizeof(RAY) * total_rays);
+				if (ray_cache == NULL)
+					error(SYSTEM, "out of memory in rtrace");
+			}
+			ray_cache[current_ray++] = thisray;
+		} else /* Nothing ready to write yet. */
+#endif
 		if (ferror(stdout))
 			error(SYSTEM, "write error");
 		if (vcount && !--vcount)		/* check for end */
 			break;
 	}
+#ifdef ACCELERAD
+	if (use_optix) {
+		/* Run OptiX kernel. */
+		total_rays = current_ray;
+		computeOptix(hresolu ? hresolu : 1, vresolu ? vresolu : total_rays, imm_irrad, ray_cache);
+
+		/* Write output */
+		for ( current_ray = 0u; current_ray < total_rays; ) {
+			printvals(&ray_cache[current_ray++]);
+		}
+
+		free(ray_cache);
+	} else /* OptiX kernel can only be launched from a single thread. */
+#endif
 	if (ray_pnprocs > 1) {				/* clean up children */
 		if (ray_fifo_flush() < 0)
 			error(USER, "unable to complete processing");
@@ -296,10 +376,17 @@ setrtoutput(void)			/* set up output tables, return #comp */
 			ncomp++;
 			castonly = 0;
 			break;
+#ifdef DAYSIM
+		case 'c':               /* daylight coefficients */
+			*table++ = daysimOutput;
+			castonly = 0;
+			break;
+#else
 		case 'c':				/* local coordinates */
 			*table++ = oputc;
 			ncomp += 2;
 			break;
+#endif
 		case 'L':				/* single ray length */
 			*table++ = oputL;
 			ncomp++;
@@ -371,6 +458,10 @@ setrtoutput(void)			/* set up output tables, return #comp */
 static void
 bogusray(void)			/* print out empty record */
 {
+#ifdef ACCELERAD
+	if (use_optix)
+		return; /* The rest will occur after the OptiX kernel runs. */
+#endif
 	rayorigin(&thisray, PRIMARY, NULL, NULL);
 	printvals(&thisray);
 }
@@ -434,6 +525,10 @@ rtcompute(			/* compute and print ray value(s) */
 		if (castonly)
 			thisray.revf = raycast;
 	}
+#ifdef ACCELERAD
+	if (use_optix)
+		return; /* The rest will occur after the OptiX kernel runs. */
+#endif
 	if (ray_pnprocs > 1) {		/* multiprocessing FIFO? */
 		if (ray_fifo_in(&thisray) < 0)
 			error(USER, "lost children");
@@ -953,3 +1048,56 @@ putrgbe(RREAL *v, int n)	/* output RGBE color */
 	setcolr(cout, v[0], v[1], v[2]);
 	putbinary(cout, sizeof(cout), 1, stdout);
 }
+
+#ifdef DAYSIM
+static void daysimOutput(RAY *r)				/* new function to print daylight_coef static int daysimOutput( RAY *r )*/
+{
+	int    k;
+	double ratio, sum;
+
+	if (outform == 'c') {
+		float daylightCoef[DAYSIM_MAX_COEFS + 1];
+
+		daylightCoef[0] = 0.0;
+		for (k = 0; k < daysimGetCoefficients(); k++) {
+			daylightCoef[0] += r->daylightCoef[k];
+			daylightCoef[k + 1] = r->daylightCoef[k];
+		}
+
+		fwrite((char*)daylightCoef, sizeof(daylightCoef), 1, stdout);
+		return;
+	}
+
+	if (daysimGetCoefficients() >= 2) {
+		sum = 0.0;
+
+		for (k = 0; k < daysimGetCoefficients(); k++) {
+			RREAL dc = r->daylightCoef[k] / daysimLuminousSkySegments;
+			sum += r->daylightCoef[k];
+
+			(*putreal)(&dc, 1); // TODO one at a time may not be the most efficient way to do this
+		}
+
+		if (sum >= colval(r->rcol, RED)) { /* test whether the sum of daylight
+										   coefficients corresponds to value for red */
+			if (sum == 0)
+				ratio = 1.0;
+			else
+				ratio = colval(r->rcol, RED) / sum;
+		} else {
+			if (colval(r->rcol, RED) == 0)
+				ratio = 1.0;
+			else
+				ratio = sum / colval(r->rcol, RED);
+		}
+		if (ratio < 0.9999) {
+			sprintf(errmsg,
+				"The sum of the daylight cofficients is %e and does not equal the total red illuminance %e",
+				sum, colval(r->rcol, RED));
+			error(WARNING, errmsg);
+		} else {
+			//printf( "\n# ratio %12.9g\t[min( sum(DC)/ray-value, ray-value/sum(DC) )]", ratio );
+		}
+	}
+}
+#endif
