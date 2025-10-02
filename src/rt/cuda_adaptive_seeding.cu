@@ -4,7 +4,8 @@
 
 #include "accelerad_copyright.h"
 
-#include <stdio.h>
+#include "cuda_compat.h"
+#include <inttypes.h>
 #include <stdlib.h>
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
@@ -654,7 +655,7 @@ void CCALL cuda_score_hits(PointDirection *hits, int *seeds, const unsigned int 
 	checkCuda(cudaFree(deviceSeeds));
 }
 
-static void printDevProp(const cudaDeviceProp *devProp)
+static void printDevProp(const cudaDeviceProp *devProp, int deviceId)
 {
 	fprintf(stderr, "Revision number:                    %d.%d\n", devProp->major, devProp->minor);
 	fprintf(stderr, "Name:                               %s\n", devProp->name);
@@ -674,15 +675,15 @@ static void printDevProp(const cudaDeviceProp *devProp)
 	for (int i = 0; i < 3; ++i)
 		fprintf(stderr, "Maximum dimension %d of grid:        %d\n", i, devProp->maxGridSize[i]);
 	fprintf(stderr, "Global memory bus width:            %d bits\n", devProp->memoryBusWidth);
-	fprintf(stderr, "Peak memory clock frequency:        %d kHz\n", devProp->memoryClockRate);
-	fprintf(stderr, "Clock rate:                         %d kHz\n", devProp->clockRate);
+	fprintf(stderr, "Peak memory clock frequency:        %d kHz\n", GET_MEMORY_CLOCK_RATE(*devProp, deviceId));
+	fprintf(stderr, "Clock rate:                         %d kHz\n", GET_CLOCK_RATE(*devProp, deviceId));
 	fprintf(stderr, "Texture alignment:                  %" PRIu64 "\n", devProp->textureAlignment);
 	fprintf(stderr, "Texture pitch alignment:            %" PRIu64 "\n", devProp->texturePitchAlignment);
 	fprintf(stderr, "Concurrent kernels:                 %s\n", devProp->concurrentKernels ? "Yes" : "No");
-	fprintf(stderr, "Concurrent copy and execution:      %s\n", devProp->deviceOverlap ? "Yes" : "No");
+	fprintf(stderr, "Concurrent copy and execution:      %s\n", GET_DEVICE_OVERLAP(*devProp) ? "Yes" : "No");
 	fprintf(stderr, "Number of async engines:            %d\n", devProp->asyncEngineCount);
 	fprintf(stderr, "Number of multiprocessors:          %d\n", devProp->multiProcessorCount);
-	fprintf(stderr, "Kernel execution timeout:           %s\n", devProp->kernelExecTimeoutEnabled ? "Yes" : "No");
+	fprintf(stderr, "Kernel execution timeout:           %s\n", GET_KERNEL_EXEC_TIMEOUT_ENABLED(*devProp, deviceId) ? "Yes" : "No");
 	fprintf(stderr, "Unified addressing with host:       %s\n", devProp->unifiedAddressing ? "Yes" : "No");
 	fprintf(stderr, "Device can map host memory:         %s\n", devProp->canMapHostMemory ? "Yes" : "No");
 	fprintf(stderr, "Device supports managed memory:     %s\n", devProp->managedMemory ? "Yes" : "No");
@@ -704,7 +705,7 @@ void printCUDAProp()
 		fprintf(stderr, "\nCUDA Device #%d\n", i);
 		cudaDeviceProp devProp;
 		cudaGetDeviceProperties(&devProp, i);
-		printDevProp(&devProp);
+		printDevProp(&devProp, i);
 	}
 }
 

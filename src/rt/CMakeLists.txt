@@ -109,12 +109,12 @@ add_library(raycalls raycalls.c ${rayp_SOURCES} rayfifo.c)
 if(OptiX_USE)
   # This enforces a particular version of CMake that we require to process the script files
   # properly.
-  cmake_minimum_required(VERSION 2.8.8 FATAL_ERROR)
+  cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
   
   # As of CMake 2.6 policies were introduced in order to provide a mechanism for
   # adding backwards compatibility one feature at a time.  We will just specify
   # that all policies will use version 2.6 symantics.
-  cmake_policy(VERSION 2.6)
+  cmake_policy(VERSION 3.5)
 
   # Turn off the warning that NVCC issues when generating PTX from our CUDA samples.  This
   # is a custom extension to the FindCUDA code distributed by CMake.
@@ -152,9 +152,11 @@ if(OptiX_USE)
   # wish from the GUI or from ccmake.
   if(NOT PASSED_FIRST_CONFIGURE)
     ENSURE_NVCC_FLAG("--use_fast_math")
-    ENSURE_NVCC_FLAG("--gpu-architecture sm_30")
+    ENSURE_NVCC_FLAG("--gpu-architecture sm_75")
     #ENSURE_NVCC_FLAG("-rdc true")
     ENSURE_NVCC_FLAG("-Xptxas -v")
+    ENSURE_NVCC_FLAG("-allow-unsupported-compiler")
+    ENSURE_NVCC_FLAG("--pre-include ${CMAKE_CURRENT_SOURCE_DIR}/cuda_compat.h")
 	
     if (CUDA_VERSION VERSION_LESS "3.0")
       ENSURE_NVCC_FLAG("--keep")
