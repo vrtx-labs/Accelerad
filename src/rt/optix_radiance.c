@@ -369,10 +369,9 @@ static void createRemoteDevice(RTremotedevice* remote)
 
 void createContext(RTcontext* context, const RTsize width, const RTsize height)
 {
-	//RTbuffer seed_buffer;
-
-	//unsigned int* seeds;
-	//RTsize i;
+	RTbuffer seed_buffer;
+	unsigned int* seeds;
+	RTsize i;
 	unsigned int ray_type_count, entry_point_count;
 
 	/* Check if irradiance cache is used */
@@ -413,12 +412,12 @@ void createContext(RTcontext* context, const RTsize width, const RTsize height)
 #endif
 
 	/* Create a buffer of random number seeds */
-	//createBuffer2D( *context, RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT, width, height, &seed_buffer );
-	//RT_CHECK_ERROR2( rtBufferMap( seed_buffer, (void**)&seeds ) );
-	//for ( i = 0; i < width * height; ++i ) 
-	//	seeds[i] = rand();
-	//RT_CHECK_ERROR2( rtBufferUnmap( seed_buffer ) );
-	//applyContextObject( *context, "rnd_seeds", seed_buffer );
+	createBuffer2D( *context, RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT, width, height, &seed_buffer );
+	RT_CHECK_ERROR2( rtBufferMap( seed_buffer, (void**)&seeds ) );
+	for ( i = 0; i < width * height; ++i ) 
+		seeds[i] = rand();
+	RT_CHECK_ERROR2( rtBufferUnmap( seed_buffer ) );
+	applyContextObject( *context, "rnd_seeds", seed_buffer );
 
 #ifdef TIMEOUT_CALLBACK
 #ifdef REMOTE_VCA
