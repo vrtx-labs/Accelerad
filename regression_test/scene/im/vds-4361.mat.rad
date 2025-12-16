@@ -1,0 +1,91 @@
+# material modifier for 'Wall0' 
+void plastic Wall0 
+0 
+0 
+5 0.5 0.5 0.5 0 0.03 
+## 
+ 
+# material modifier for 'Wall1' 
+void plastic Wall1 
+0 
+0 
+5 0.5 0.5 0.5 0 0.03 
+## 
+ 
+# material modifier for 'Wall2' 
+void plastic Wall2 
+0 
+0 
+5 0.5 0.5 0.5 0 0.03 
+## 
+ 
+# material modifier for 'Wall3' 
+void plastic Wall3 
+0 
+0 
+5 0.5 0.5 0.5 0 0.03 
+## 
+ 
+# material modifier for 'Wall4' 
+void plastic Wall4 
+0 
+0 
+5 0.5 0.5 0.5 0 0.03 
+## 
+ 
+# material modifier for 'Wall5' 
+void plastic Wall5 
+0 
+0 
+5 0.5 0.5 0.5 0 0.03 
+## 
+ 
+# material modifier for 'Wall6' 
+void plastic Wall6 
+0 
+0 
+5 0.5 0.5 0.5 0 0.03 
+## 
+ 
+# material modifier for 'Wall7' 
+void plastic Wall7 
+0 
+0 
+5 0.5 0.5 0.5 0 0.03 
+## 
+ 
+# material modifier for 'Wall8' 
+void plastic Wall8 
+0 
+0 
+5 0.5 0.5 0.5 0 0.03 
+## 
+ 
+# material modifier for 'Wall9' 
+void plastic Wall9 
+0 
+0 
+5 0.5 0.5 0.5 0 0.03 
+## 
+ 
+# material modifier for 'Floor' 
+void plastic Floor 
+0 
+0 
+5 0.3 0.3 0.3 0 0.03 
+## 
+ 
+# material modifier for 'Roof1' 
+void plastic Roof1 
+0 
+0 
+5 0.7 0.7 0.7 0 0.03 
+## 
+ 
+# material modifier for 'Ceiling' 
+void plastic Ceiling 
+0 
+0 
+5 0.7 0.7 0.7 0 0.03 
+## 
+ 

@@ -1,0 +1,18 @@
+# material modifier for 'Wall1_Window1' 
+void glass Wall1_Window1 
+0 
+0 
+3 0.96 0.96 0.96 
+# 
+# material modifier for 'Wall1_Window2' 
+void glass Wall1_Window2 
+0 
+0 
+3 0.96 0.96 0.96 
+# 
+# material modifier for 'Wall1_Window3' 
+void glass Wall1_Window3 
+0 
+0 
+3 0.96 0.96 0.96 
+# 

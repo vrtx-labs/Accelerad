@@ -33,6 +33,10 @@ Write-Host "  rcalc:  $RcalcExe"
 $env:PATH = "$BinPath;$env:PATH"
 $env:RAYPATH = "regression_test\lib_base;$LibPath;."
 
+Write-Host "Environment set:" -ForegroundColor Green
+Write-Host "  PATH: $BinPath;..." -ForegroundColor Gray
+Write-Host "  RAYPATH: $env:RAYPATH" -ForegroundColor Gray
+
 # Create output directory
 New-Item -ItemType Directory -Path "test_output" -Force | Out-Null
 
