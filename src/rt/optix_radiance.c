@@ -243,10 +243,26 @@ static void checkDevices()
 	char device_name[128], pci[13];
 	RTsize memory_size;
 
-	/* Check driver version */
-	cudaDriverGetVersion(&driver);
-	cudaRuntimeGetVersion(&runtime);
-	if (driver < runtime)
+	/* Check driver and runtime versions */
+	cudaError_t runtimeResult = cudaRuntimeGetVersion(&runtime);
+	cudaError_t driverResult = cudaDriverGetVersion(&driver);
+	
+	/* Handle CUDA runtime availability */
+	if (runtimeResult != cudaSuccess && driverResult != cudaSuccess) {
+		/* Both CUDA runtime and driver calls failed */
+		if (runtimeResult == cudaErrorNoDevice || driverResult == cudaErrorNoDevice) {
+			mprintf("info - CUDA runtime not available (no devices found). OptiX will use display driver version for compatibility.\n");
+		} else {
+			mprintf("info - CUDA runtime not available (errors %d/%d). OptiX will use display driver version for compatibility.\n", 
+				(int)runtimeResult, (int)driverResult);
+		}
+		runtime = driver = 0;  /* Set both to 0 to indicate CUDA is not available */
+	} else if (driverResult != cudaSuccess || driver == 0) {
+		/* CUDA Driver API not available, use runtime version */
+		driver = runtime;
+	}
+	
+	if (driver < runtime && driver > 0 && driver != runtime)
 		eprintf(INTERNAL, "Current graphics driver %d.%d.%d does not support runtime %d.%d.%d. Update your graphics driver.",
 			driver / 1000, (driver % 100) / 10, driver % 10, runtime / 1000, (runtime % 100) / 10, runtime % 10);
 

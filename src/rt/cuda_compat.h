@@ -12,6 +12,8 @@
 
 #ifdef __CUDACC__
 
+// CUDA 11.x has these functions built-in, only define for CUDA 13.0+
+#if defined(CUDA_VERSION) && CUDA_VERSION >= 13000
 // Define the missing functions that OptiX SDK 6.5.0 expects but CUDA 13.0 doesn't provide
 __device__ __host__ static inline int float_as_int(float f)
 {
@@ -26,6 +28,7 @@ __device__ __host__ static inline float int_as_float(int i)
     u.i = i;
     return u.f;
 }
+#endif
 
 // Handle deprecated cudaDeviceProp fields that were removed in CUDA 13.0
 // Use proper replacement APIs as documented in CUDA 13.0 release notes

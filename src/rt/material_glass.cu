@@ -154,8 +154,9 @@ RT_CALLABLE_PROGRAM PerRayData_radiance closest_hit_glass_radiance(IntersectData
 	// stop if it's a shadow ray, which it isn't
 
 	/* compute reflectance */
-	float3 refl = 0.5f * r1e * ( 1.0f + (1.0f-2.0f*r1e) * mcolor * mcolor ) / (1.0f - r1e * r1e * mcolor * mcolor );
-	refl       += 0.5f * r1m * ( 1.0f + (1.0f-2.0f*r1m) * mcolor * mcolor ) / (1.0f - r1m * r1m * mcolor * mcolor );
+	float3 mcolor_sq = mcolor * mcolor;
+	float3 refl = 0.5f * r1e * (1.0f + (1.0f-2.0f*r1e) * mcolor_sq) / (1.0f - r1e * r1e * mcolor_sq);
+	refl += 0.5f * r1m * (1.0f + (1.0f-2.0f*r1m) * mcolor_sq) / (1.0f - r1m * r1m * mcolor_sq);
 
 	/* reflected ray */
 	if (rayorigin(new_prd, prd, refl, 1, 0)) {

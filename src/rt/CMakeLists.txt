@@ -120,6 +120,11 @@ if(OptiX_USE)
   # is a custom extension to the FindCUDA code distributed by CMake.
   option(CUDA_REMOVE_GLOBAL_MEMORY_SPACE_WARNING "Suppress the \"Advisory: Cannot tell what pointer points to, assuming global memory space\" warning nvcc makes." ON)
 
+  # Set CUDA host compiler to MSVC 14.33 for CUDA 11.8 compatibility
+  if(WIN32 AND NOT DEFINED CUDA_HOST_COMPILER)
+    set(CUDA_HOST_COMPILER "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.33.31629/bin/Hostx64/x64/cl.exe" CACHE FILEPATH "CUDA host compiler")
+  endif()
+  
   # Find at least a 2.3 version of CUDA.
   find_package(CUDA 2.3 REQUIRED)
 
@@ -176,7 +181,13 @@ if(OptiX_USE)
   # This passes a preprocessor definition to cl.exe when processing CUDA code.
   if(USING_WINDOWS_CL)
     list(APPEND CUDA_NVCC_FLAGS --compiler-options /D_USE_MATH_DEFINES)
+    # Force use of MSVC 14.33 include paths for CUDA 11.8 - must come FIRST
+    list(APPEND CUDA_NVCC_FLAGS --compiler-options "/external:I\"C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.33.31629/include\"")
+    list(APPEND CUDA_NVCC_FLAGS --compiler-options /external:W0)
   endif()
+  
+  # Force allow unsupported compiler for CUDA 11.8 with VS2022
+  list(APPEND CUDA_NVCC_FLAGS -allow-unsupported-compiler)
   
   # Compile the CUDA files to OBJ format.
   # This is a macro found in FindCUDA.cmake that compiles the listed
