@@ -29,7 +29,7 @@ include(CTest)
 option(BUILD_SHARED_LIBS "Build radiance using shared libraries?" OFF)
 option(BUILD_HEADLESS "Build radiance without any GUI components?" OFF)
 option(BUILD_PABOPTO_UTILS "Build PABOpto Utilities?" OFF)
-option(BUILD_LIBTIFF "Build libtiff?" OFF)
+option(BUILD_LIBTIFF "Build libtiff?" ON)
 
 if(NOT WIN32)
   set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 1)
@@ -116,7 +116,17 @@ endif()
 include(CPack)
 
 if(NOT BUILD_HEADLESS)
+
+  # add Qt 5.15.2 base dir on windows (assuming default installation)
+  if(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+	set (CMAKE_PREFIX_PATH "C:\\Qt\\5.15.2\\msvc2019_64\\")
+  endif()
+  if(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 4)
+	set (CMAKE_PREFIX_PATH "C:\\Qt\\5.15.2\\msvc2019\\")
+  endif()
+
   find_package(Qt5Widgets)
+  
   get_target_property(QT_LIBRARY_DIR Qt5::Core LOCATION)
   get_filename_component(QT_LIBRARY_DIR ${QT_LIBRARY_DIR} PATH)
   get_filename_component(QT_LIBRARY_DIR "${QT_LIBRARY_DIR}/.." ABSOLUTE)

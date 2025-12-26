@@ -119,3 +119,27 @@ There is a user interface built on top of this using Tcl/Tk, called trad.
 If you do not have Tcl/Tk installed on your system, you must do so prior
 to building this distribution if you want trad to install.  (Try a google
 search on "Tcl/Tk" or go to "http://www.scriptics.com/software/tcltk/".)
+
+
+Additional Information for manual builds on Windows 10 (most likely works 
+for Windows 11 too). The specific requirements to use cmake for project 
+generation with Visual Studio are listed below with links to their respective
+installation resources.
++ Visual Studio 2017 (or 2019), only one version installed as multiple build
+tools are not identified correctly (I assume it picks the first installation
+and don't have a cmake solution for this, might be Cmake update)
++ CMake 3.15.5 
++ OptiX 6.0.0 (or 6.5.0), later change header structure (optix_world.h or 
+  something)
++ Qt 5.15.2
++ Qwt 6.1.3
++ Cuda 10.2 (or 11.8), 11.8 loses sm_30 support, later fail to work with 
+  Visual Studio version at the moment)
++ Strawberry Perl 5.42.1
++ Nullsoft Install System (3.11)
+
+You need to run the windeployqt.exe of the Qt installation with the build 
+'rvu.exe' as the target. You also need to copy 'qwt.dll' from your Qwt 
+directory, 'optix.6.0.0.dll' (or 6.5.0 if installed) from your OptiX  
+SDK binary folder and 'Qt5OpenGL.dll' and 'Qt5PrintSupport.dll' from your
+Qt SDK binary folder (don't seem to be identified by 'windeplyqt.exe'.
