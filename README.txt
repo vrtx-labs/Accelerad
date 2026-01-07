@@ -121,25 +121,65 @@ to building this distribution if you want trad to install.  (Try a google
 search on "Tcl/Tk" or go to "http://www.scriptics.com/software/tcltk/".)
 
 
+## Manual Windows Build Environment Requirements
+
 Additional Information for manual builds on Windows 10 (most likely works 
 for Windows 11 too). The specific requirements to use cmake for project 
 generation with Visual Studio are listed below with links to their respective
 installation resources.
-+ Visual Studio 2017 (or 2019), only one version installed as multiple build
-tools are not identified correctly (I assume it picks the first installation
-and don't have a cmake solution for this, might be Cmake update)
-+ CMake 3.15.5 
-+ OptiX 6.0.0 (or 6.5.0), later change header structure (optix_world.h or 
-  something)
-+ Qt 5.15.2
-+ Qwt 6.1.3
-+ Cuda 10.2 (or 11.8), 11.8 loses sm_30 support, later fail to work with 
-  Visual Studio version at the moment)
-+ Strawberry Perl 5.42.1
-+ Nullsoft Install System (3.11)
 
-You need to run the windeployqt.exe of the Qt installation with the build 
-'rvu.exe' as the target. You also need to copy 'qwt.dll' from your Qwt 
++ Visual Studio 2017 (or 2019)  
+	only one version installed as multiple build tools are not identified 
+	correctly (I assume it picks the first installation and don't have a 
+	cmake solution for this, might be Cmake update)  
+	Download: https://aka.ms/vs/15/release/vs_community.exe  
+	Link-List: https://gist.github.com/Chenx221/6f4ed72cd785d80edb0bc50c9921daf7  
+	  
++ CMake 3.15.x  
+	Download: https://cmake.org/files/v3.15/  
+	
++ OptiX 6.0.0 (or 6.5.0) 
+	later versions changed header structure (optix_world.h or something)  
+	Download: https://developer.nvidia.com/designworks/optix/downloads/6.0.0/win64  
+	Download: https://developer.nvidia.com/designworks/optix/downloads/6.5.0/win64  
+	Requires Nvidia developer account and log in on: https://developer.nvidia.com/designworks/optix/download  
+	  
++ Qt 5.15.2  
+	Download: https://doc.qt.io/qt-6/get-and-install-qt.html#using-qt-online-installer  
+	Requires Qt account and log in within the Qt Installer  
+	Old Qt releases need to be made visible by enabling the "Archive" in  
+	the component selection (dropdown in the upper right)  
+	Can be copied as a folder from any other location (Remark: Qt license  
+	is for non-company/open-source development)
+	  
++ Qwt 6.1.3  
+	Download: https://github.com/opencor/qwt/releases/tag/v6.1.3  
+	  
++ Cuda 10.2 (or 11.8)  
+	11.8 loses sm_30 support, later fail to work with Visual Studio  
+	version at the moment)  
+	Download: https://developer.nvidia.com/cuda-toolkit-archive  
+	  
++ Strawberry Perl 5.42.1  
+	Download: https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases  
+	  
++ Nullsoft Install System (3.11)  
+	Download: https://nsis.sourceforge.io/Download  
+	  
+? Fork (Git UI Client)  
+	Download: https://git-fork.com  
+	  
+? Notepad++ (Text Editor)  
+	Download: https://notepad-plus-plus.org/downloads/  
+	  
+
+
+## Manual Windows Post Build Steps
+
+You need to run the windeployqt.exe of your Qt installation with the build  
+'rvu.exe' as the target. You also need to copy 'qwt.dll' from your Qwt  
 directory, 'optix.6.0.0.dll' (or 6.5.0 if installed) from your OptiX  
-SDK binary folder and 'Qt5OpenGL.dll' and 'Qt5PrintSupport.dll' from your
-Qt SDK binary folder (don't seem to be identified by 'windeplyqt.exe'.
+SDK binary folder and 'Qt5OpenGL.dll' and 'Qt5PrintSupport.dll' from your  
+Qt SDK binary folder (don't seem to be identified by 'windeplyqt.exe'.  
+You will need to copy your cudart64{..}.dll from your CUDA SDK used for  
+the build process (e.g. cudart64_102.dll for CUDA 10.2)
